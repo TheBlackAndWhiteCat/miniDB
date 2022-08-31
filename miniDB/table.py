@@ -197,7 +197,7 @@ class Table:
         return indexes_to_del
 
 
-    def _select_where(self, return_columns, condition=None, order_by=None, desc=True, top_k=None):
+    def _select_where(self, return_columns, condition=None, order_by=None, desc=True, top_k=None,distinct=False):
         '''
         Select and return a table containing specified columns and rows where condition is met.
 
@@ -211,6 +211,7 @@ class Table:
             order_by: string. A column name that signals that the resulting table should be ordered based on it (no order if None).
             desc: boolean. If True, order_by will return results in descending order (False by default).
             top_k: int. An integer that defines the number of rows that will be returned (all rows if None).
+            distinct: bool. If True the list of row will constist only unique rows (non duplicate rows). False by default.
         '''
 
         # if * return all columns, else find the column indexes for the columns specified
@@ -243,7 +244,8 @@ class Table:
             s_table.order_by(order_by, desc)
 
         s_table.data = s_table.data[:int(top_k)] if isinstance(top_k,str) else s_table.data
-
+        if (distinct == True):
+            s_table.data = list(set(map(lambda x: tuple(x), s_table.data)))
         return s_table
 
 
