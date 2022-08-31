@@ -244,12 +244,14 @@ class Table:
             s_table.order_by(order_by, desc)
 
         s_table.data = s_table.data[:int(top_k)] if isinstance(top_k,str) else s_table.data
+        
+        #removing dublicates
         if (distinct == True):
             s_table.data = list(set(map(lambda x: tuple(x), s_table.data)))
         return s_table
 
 
-    def _select_where_with_btree(self, return_columns, bt, condition, order_by=None, desc=True, top_k=None):
+    def _select_where_with_btree(self, return_columns, bt, condition, order_by=None, desc=True, top_k=None,distinct = False):
 
         # if * return all columns, else find the column indexes for the columns specified
         if return_columns == '*':
@@ -292,7 +294,9 @@ class Table:
             s_table.order_by(order_by, desc)
 
         s_table.data = s_table.data[:int(top_k)] if isinstance(top_k,str) else s_table.data
-
+        #removing dublicates
+        if (distinct == True):
+            s_table.data = list(set(map(lambda x: tuple(x), s_table.data)))
         return s_table
 
     def order_by(self, column_name, desc=True):
