@@ -362,6 +362,7 @@ class Database:
             else:
                 return table.show()
     def select_distinct(self,columns, table_name, condition,order_by=None, top_k=True ,desc=None, save_as=None, return_object=True,distinct = False):
+        '''trying to convert select_distinct to select so it work with _select_where'''
         if 'distinct' in columns:
             columns = columns.replace("distinct","")
             distinct = True;
@@ -393,7 +394,7 @@ class Database:
                 return table
             else:
                 return table.show()
-
+       '''didnt work, i'll try to merge select_distinct with select'''
 
     def show_table(self, table_name, no_of_rows=None):
         '''
