@@ -332,6 +332,7 @@ class Database:
             return_object: boolean. If True, the result will be a table object (useful for internal use - the result will be printed by default).
             distinct: bool. If True then we have a distinct list of rows. False by default.
         '''
+        #converting the select(distinct) so it will work with _select_where properly
         if 'distinct' in columns:
             columns = columns.replace("distinct","")
             distinct = True;
@@ -362,7 +363,7 @@ class Database:
             if return_object:
                 return table
             else:
-                return table.show()
+                return table.show()           
 
     def show_table(self, table_name, no_of_rows=None):
         '''
