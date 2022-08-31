@@ -361,6 +361,38 @@ class Database:
                 return table
             else:
                 return table.show()
+    def select_distinct(self,columns, table_name, condition,order_by=None, top_k=True ,desc=None, save_as=None, return_object=True,distinct = False):
+        if 'distinct' in columns:
+            columns = columns.replace("distinct","")
+            distinct = True;
+        self.load_database()
+        if isinstance(table_name,Table):
+            return table_name._select_where(columns, condition, order_by, desc, top_k, distinct)
+
+        if condition is not None:
+            condition_column = split_condition(condition)[0]
+        else:
+            condition_column = ''
+
+
+        # self.lock_table(table_name, mode='x')
+        if self.is_locked(table_name):
+            return
+        if self._has_index(table_name) and condition_column==self.tables[table_name].column_names[self.tables[table_name].pk_idx]:
+            index_name = self.select('*', 'meta_indexes', f'table_name={table_name}', return_object=True).column_by_name('index_name')[0]
+            bt = self._load_idx(index_name)
+            table = self.tables[table_name]._select_where_with_btree(columns, bt, condition, order_by, desc, top_k,distinct)
+        else:
+            table = self.tables[table_name]._select_where(columns, condition, order_by, desc, top_k,distinct)
+        # self.unlock_table(table_name)
+        if save_as is not None:
+            table._name = save_as
+            self.table_from_object(table)
+        else:
+            if return_object:
+                return table
+            else:
+                return table.show()
 
 
     def show_table(self, table_name, no_of_rows=None):
