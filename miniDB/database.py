@@ -313,8 +313,7 @@ class Database:
             self._add_to_insert_stack(table_name, deleted)
         self.save_database()
 
-    def select(self, columns, table_name, condition, order_by=None, top_k=True,\
-               desc=None, save_as=None, return_object=True):
+    def select(self, columns, table_name, condition, order_by=None, top_k=True,desc=None, save_as=None, return_object=True,distinct = False):
         '''
         Selects and outputs a table's data where condtion is met.
 
@@ -331,11 +330,14 @@ class Database:
             top_k: int. An integer that defines the number of rows that will be returned (all rows if None).
             save_as: string. The name that will be used to save the resulting table into the database (no save if None).
             return_object: boolean. If True, the result will be a table object (useful for internal use - the result will be printed by default).
+            distinct: bool. If True then we have a distinct list of rows. False by default.
         '''
-        # print(table_name)
+        if 'distinct' in columns:
+            columns = columns.replace("distinct","")
+            distinct = True;
         self.load_database()
         if isinstance(table_name,Table):
-            return table_name._select_where(columns, condition, order_by, desc, top_k)
+            return table_name._select_where(columns, condition, order_by, desc, top_k,distinct)
 
         if condition is not None:
             condition_column = split_condition(condition)[0]
@@ -343,39 +345,6 @@ class Database:
             condition_column = ''
 
         
-        # self.lock_table(table_name, mode='x')
-        if self.is_locked(table_name):
-            return
-        if self._has_index(table_name) and condition_column==self.tables[table_name].column_names[self.tables[table_name].pk_idx]:
-            index_name = self.select('*', 'meta_indexes', f'table_name={table_name}', return_object=True).column_by_name('index_name')[0]
-            bt = self._load_idx(index_name)
-            table = self.tables[table_name]._select_where_with_btree(columns, bt, condition, order_by, desc, top_k)
-        else:
-            table = self.tables[table_name]._select_where(columns, condition, order_by, desc, top_k)
-        # self.unlock_table(table_name)
-        if save_as is not None:
-            table._name = save_as
-            self.table_from_object(table)
-        else:
-            if return_object:
-                return table
-            else:
-                return table.show()
-    def select_distinct(self,columns, table_name, condition,order_by=None, top_k=True ,desc=None, save_as=None, return_object=True,distinct = False):
-        '''trying to convert select_distinct to select so it work with _select_where'''
-        if 'distinct' in columns:
-            columns = columns.replace("distinct","")
-            distinct = True;
-        self.load_database()
-        if isinstance(table_name,Table):
-            return table_name._select_where(columns, condition, order_by, desc, top_k, distinct)
-
-        if condition is not None:
-            condition_column = split_condition(condition)[0]
-        else:
-            condition_column = ''
-
-
         # self.lock_table(table_name, mode='x')
         if self.is_locked(table_name):
             return
@@ -394,7 +363,6 @@ class Database:
                 return table
             else:
                 return table.show()
-       '''didnt work, i'll try to merge select_distinct with select'''
 
     def show_table(self, table_name, no_of_rows=None):
         '''
